@@ -69,7 +69,7 @@ fn find<'a>(bar: &'a MenuBar, command: &str) -> &'a native_menu::Item {
 fn vectorcraft_gets_a_mac_app_menu() {
     let bar = bar(&app(true));
     let titles: Vec<&str> = bar.menus.iter().map(|m| m.title.as_str()).collect();
-    assert_eq!(titles, ["AI-Illustrator", "File", "Edit", "Object", "Type", "Select", "Effect", "View", "Window", "Help"]);
+    assert_eq!(titles, ["AI Вектор", "File", "Edit", "Object", "Type", "Select", "Effect", "View", "Window", "Help"]);
     let app_menu = &bar.menus[0];
     assert_eq!(app_menu.role, MenuRole::App);
     assert_eq!(
@@ -94,10 +94,10 @@ fn vectorcraft_gets_a_mac_app_menu() {
         let it = find(&bar, command);
         (it.label.as_str(), it.shortcut)
     };
-    assert_eq!(shown("help.about"), ("About AI-Illustrator", None));
-    assert_eq!(shown("app.quit"), ("Quit AI-Illustrator", Some("Cmd+Q")), "Quit is the app's own, so unsaved documents are asked about");
+    assert_eq!(shown("help.about"), ("About AI Вектор", None));
+    assert_eq!(shown("app.quit"), ("Quit AI Вектор", Some("Cmd+Q")), "Quit is the app's own, so unsaved documents are asked about");
     // ⌘H stays View › Hide Edges (Illustrator's); Hide takes ⌃⌘H.
-    assert_eq!(shown(native_menu::HIDE), ("Hide AI-Illustrator", Some("Ctrl+Cmd+H")));
+    assert_eq!(shown(native_menu::HIDE), ("Hide AI Вектор", Some("Ctrl+Cmd+H")));
     assert_eq!(shown(native_menu::HIDE_OTHERS), ("Hide Others", Some("Cmd+Alt+H")));
     assert_eq!(find(&bar, "view.edges").shortcut, Some("Cmd+H"));
     assert_eq!(bar.menu(MenuRole::Help).map(|m| m.title.as_str()), Some("Help"));
@@ -187,7 +187,7 @@ fn every_in_window_item_is_in_the_mac_menu_bar_once() {
         assert!(a.contains_key(key) || system.contains(&key.0.as_str()) || synthesized.contains(&key.0.as_str()), "{key:?} isn't an in-window item");
     }
     let help = ids(menu(&mac, "Help"));
-    // No outside links (AI-Illustrator works offline); About moved to the App menu.
+    // No outside links (AI Вектор works offline); About moved to the App menu.
     assert!(help.contains(&"help.commandPalette".to_string()) && !help.contains(&"help.about".to_string()), "{help:?}");
     let edit = ids(menu(&mac, "Edit"));
     assert!(!edit.contains(&"edit.preferences".to_string()) && edit.contains(&"edit.keyboardShortcuts".to_string()), "{edit:?}");

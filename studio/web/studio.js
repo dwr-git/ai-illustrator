@@ -1,4 +1,4 @@
-/* AI-Illustrator — помощник внутри векторного редактора.
+/* AI Вектор — помощник внутри векторного редактора.
  *
  * Панель в браузере разговаривает с моделью через api/assistant.php, а действия
  * выполняет в самом редакторе через window.vectorcraft (apps/vectorcraft-web/src/api.rs):
@@ -777,7 +777,7 @@
     try {
       r = await post(payload);
     } catch (e) {
-      console.warn('AI-Illustrator: запрос к помощнику оборвался', e);
+      console.warn('AI Вектор: запрос к помощнику оборвался', e);
       if (!hasImages(payload)) throw new Error(await explainNoAnswer(took()));
       try { r = await post(withoutImages(payload)); } catch { throw new Error(await explainNoAnswer(took())); }
       tellImagesBlocked();
@@ -1104,7 +1104,7 @@
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 60000);
       return true;
-    } catch (e) { console.warn('AI-Illustrator: скачивание не удалось', e); return false; }
+    } catch (e) { console.warn('AI Вектор: скачивание не удалось', e); return false; }
   }
 
   const Files = (() => {
@@ -1318,7 +1318,7 @@
       try { VC_SAVES().takesSaves = true; } catch { /* мост ещё не готов: сохранения скачиваются */ }
       window.addEventListener('vectorcraft:save', (e) => {
         const d = (e && e.detail) || {};
-        queue = queue.then(() => onSave(d)).catch((err) => console.warn('AI-Illustrator: сохранение', err));
+        queue = queue.then(() => onSave(d)).catch((err) => console.warn('AI Вектор: сохранение', err));
       });
       $('filesBtn').onclick = () => show(true);
       $('filesClose').onclick = () => show(false);

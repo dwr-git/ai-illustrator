@@ -878,7 +878,7 @@ const KEEPS_MENU_NAMES: [&str; 18] = ["cs", "de", "el", "es", "fr", "hu", "it", 
 /// names and the perspective grid presets (names, shown untranslated wherever else they appear).
 /// Each language's own name in the Language menu is left alone too.
 const MENU_KEEP_AS_IS: &[&str] = &[
-    "AI-Illustrator",
+    "AI Вектор",
     "OpenType",
     "Essentials",
     "Essentials Classic",
@@ -900,7 +900,7 @@ const MENU_KEEP_AS_IS: &[&str] = &[
     "[3P-Low View]",
 ];
 
-/// The built-in workspace names, which AI-Illustrator's Russian catalog translates.
+/// The built-in workspace names, which AI Вектор's Russian catalog translates.
 const RU_WORKSPACE_NAMES: &[&str] =
     &["Essentials", "Essentials Classic", "Automation", "Layout", "Painting", "Printing and Proofing", "Tracing", "Touch", "Typography", "Web"];
 
@@ -1117,7 +1117,7 @@ fn kept_menu_names_are_menu_labels_left_in_english() {
     for keep in MENU_KEEP_AS_IS {
         assert!(labels.iter().any(|(l, ..)| l == keep), "`{keep}` isn't a menu label");
         for code in KEEPS_MENU_NAMES {
-            // AI-Illustrator's Russian names the built-in workspaces in Russian.
+            // AI Вектор's Russian names the built-in workspaces in Russian.
             if code == "ru" && RU_WORKSPACE_NAMES.contains(keep) {
                 assert!(has(Lang::from_code(code).expect("registered"), keep), "ru: workspace `{keep}` isn't translated");
                 continue;

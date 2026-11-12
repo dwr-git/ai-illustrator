@@ -1,4 +1,4 @@
-//! Help → About AI-Illustrator.
+//! Help → About AI Вектор.
 
 use crate::VectorcraftApp;
 use crate::theme;
@@ -9,7 +9,7 @@ pub(super) fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
         return;
     }
     let mut open = true;
-    egui::Window::new(tl!("About AI-Illustrator"))
+    egui::Window::new(tl!("About AI Вектор"))
         .collapsible(false)
         .resizable(false)
         .open(&mut open)
@@ -45,7 +45,7 @@ pub(super) fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
     app.ui.about = open;
 }
 
-/// The About tab: mark, version, licences and the GPU in use. No outside links: AI-Illustrator works
+/// The About tab: mark, version, licences and the GPU in use. No outside links: AI Вектор works
 /// offline, from its folder on the user's server.
 fn about_tab(app: &mut VectorcraftApp, ui: &mut egui::Ui) {
     ui.set_width(380.0);
@@ -60,6 +60,8 @@ fn about_tab(app: &mut VectorcraftApp, ui: &mut egui::Ui) {
             ));
         });
     });
+    ui.add_space(8.0);
+    ui.label(tl!("Illustrator is a trademark of Adobe. AI Вектор is not affiliated with Adobe and works with files in its formats."));
     ui.add_space(12.0);
     ui.label(egui::RichText::new(tl!("MIT OR Apache-2.0. Fonts: Source Sans 3, Inter, JetBrains Mono (OFL). Icons: Lucide (ISC).")).size(11.0));
     // The GPU the window renders with, for bug reports (Preferences › Performance picks it).

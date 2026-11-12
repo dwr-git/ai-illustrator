@@ -553,9 +553,9 @@ pub const UI_COMMANDS: &[(&str, &str, &str, &str)] = &[
         "",
         "{} opens the Save PDF dialog; with params = document.exportPdf options written to path (asked when missing; viewAfterSaving opens the file) → {path, bytes, warnings}",
     ),
-    ("help.about", "About AI-Illustrator", "", "{}"),
+    ("help.about", "About AI Вектор", "", "{}"),
     ("help.commandPalette", "Search Commands…", "Cmd+Shift+/", "{}"),
-    ("app.quit", "Quit AI-Illustrator", "Cmd+Q", "{}"),
+    ("app.quit", "Quit AI Вектор", "Cmd+Q", "{}"),
     (
         "ui.swatchOptions",
         "Swatch Options…",
@@ -2644,8 +2644,8 @@ pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
             // App menu from this entry and the other menus (About from Help, Settings from Edit,
             // Quit from File, Language and Appearance synthesized). It stays first: `from_tree`
             // gives the first menu the App role.
-            "AI-Illustrator",
-            vec![c("About AI-Illustrator", "help.about")],
+            "AI Вектор",
+            vec![c("About AI Вектор", "help.about")],
         ),
         (
             "File",
@@ -3301,7 +3301,7 @@ pub fn menu_tree_named(english_names: bool) -> Vec<(&'static str, Vec<Item>)> {
                 sub("Symbol Libraries", crate::panels::symbols::window_menu()),
             ],
         ),
-        ("Help", vec![c("Search Commands…", "help.commandPalette"), Sep, c("About AI-Illustrator", "help.about")]),
+        ("Help", vec![c("Search Commands…", "help.commandPalette"), Sep, c("About AI Вектор", "help.about")]),
     ]
 }
 
@@ -3503,7 +3503,7 @@ pub fn menu_bar(app: &mut VectorcraftApp, ui: &mut egui::Ui) -> f32 {
     let tree = menu_tree_named(app.session.prefs.font_names_in_english);
     // No application menu in the window (as in Illustrator): the bar starts at File on every
     // platform. The VectorCraft menu stays in the tree: the native Mac bar takes it from there.
-    let tree: Vec<(&str, Vec<Item>)> = tree.into_iter().filter(|(title, _)| *title != "AI-Illustrator").collect();
+    let tree: Vec<(&str, Vec<Item>)> = tree.into_iter().filter(|(title, _)| *title != "AI Вектор").collect();
     let (end, open) = egui::MenuBar::new()
         .ui(ui, |ui| {
             let mut titles = Vec::with_capacity(tree.len());
@@ -4421,7 +4421,7 @@ mod tests {
         for t in titles {
             assert!(shown.iter().any(|s| s == t), "{t} missing from {shown:?}");
         }
-        assert!(!shown.iter().any(|s| s == "AI-Illustrator"), "{shown:?}");
+        assert!(!shown.iter().any(|s| s == "AI Вектор"), "{shown:?}");
     }
 
     #[test]

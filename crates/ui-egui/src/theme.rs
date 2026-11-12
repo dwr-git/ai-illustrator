@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Brightness {
-    /// AI-Illustrator opens dark, with the Brand scheme (glass panels over the brand gradient).
+    /// AI Вектор opens dark, with the Brand scheme (glass panels over the brand gradient).
     #[default]
     Dark,
     MediumDark,
@@ -86,7 +86,7 @@ impl Accent {
     }
 }
 
-/// User Interface › Color Scheme: Neumorphic (AI-Illustrator's default: one soft, cool surface that
+/// User Interface › Color Scheme: Neumorphic (AI Вектор's default: one soft, cool surface that
 /// panels and controls are raised from or pressed into), Brand (glass panels over the brand
 /// gradient, solid black floating windows), Modern (slate greys and the chosen accent) or Classic
 /// (the neutral greys and blue accent of earlier versions).
@@ -555,7 +555,7 @@ impl Tokens {
     }
 
     /// The theme's id for the web page (`window.vectorcraft.currentTheme()`): `neuLight`,
-    /// `neuDark` and `brand` for AI-Illustrator's own looks, else `modern-dark`, `classic-light`, ….
+    /// `neuDark` and `brand` for AI Вектор's own looks, else `modern-dark`, `classic-light`, ….
     pub fn theme_id(&self) -> &'static str {
         match (self.brand, self.neu, self.dark) {
             (true, _, _) => "brand",

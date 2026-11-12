@@ -1,5 +1,5 @@
-//! AI-Illustrator's brand mark: a pen nib in a rounded frame (`assets/app-icon/ai-illustrator-mark-128.png`,
-//! drawn in code for AI-Illustrator, the same design as its favicon). The PNG carries the rounded corners; it is decoded once per context into a
+//! AI Вектор's brand mark (`assets/app-icon/ai-illustrator-mark-128.png`: the AI Вектор icon, original
+//! work made for this project by Dewiar, the same design as the home-screen icon). The PNG carries the rounded corners; it is decoded once per context into a
 //! mipmapped texture, so it stays crisp from the 18 pt app-bar mark to the About box.
 
 use egui::{Color32, Context, Id, Rect, TextureHandle, TextureOptions, Ui, pos2};

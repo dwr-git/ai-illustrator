@@ -156,7 +156,7 @@ fn request(method: &str, params: Value) -> js_sys::Promise {
         if sent {
             WAITING.with(|w| w.borrow_mut().push((rx, resolve, reject)));
         } else {
-            let _ = reject.call1(&JsValue::NULL, &js_sys::Error::new("AI-Illustrator is not running yet"));
+            let _ = reject.call1(&JsValue::NULL, &js_sys::Error::new("AI Вектор is not running yet"));
         }
     });
     repaint();
@@ -239,7 +239,7 @@ pub fn install() -> Result<(), JsValue> {
         })
         .into_js_value(),
     )?;
-    // AI-Illustrator's page (studio/): the theme, keyboard focus and the Brand backdrop's alignment.
+    // AI Вектор's page (studio/): the theme, keyboard focus and the Brand backdrop's alignment.
     set_fn(
         &obj,
         "currentTheme",
@@ -286,7 +286,7 @@ pub fn install() -> Result<(), JsValue> {
     )?;
     // The page sets it to true when it keeps documents in the user's files on the server.
     set_fn(&obj, "takesSaves", JsValue::FALSE)?;
-    set_fn(&obj, "product", JsValue::from_str("AI-Illustrator"))?;
+    set_fn(&obj, "product", JsValue::from_str("AI Вектор"))?;
     let w = web_sys::window().ok_or("no window")?;
     js_sys::Reflect::set(&w, &"vectorcraft".into(), &obj)?;
     Ok(())

@@ -1245,7 +1245,7 @@ impl Default for Prefs {
             plugins_folder: String::new(),
             scratch_primary: s("Startup"),
             scratch_secondary: s("None"),
-            // AI-Illustrator: the Brand look (gradient backdrop, glass panels) and a Russian interface for a new user.
+            // AI Вектор: the Brand look (gradient backdrop, glass panels) and a Russian interface for a new user.
             ui_brightness: s("dark"),
             ui_accent: s("coral"),
             ui_color_scheme: s("brand"),

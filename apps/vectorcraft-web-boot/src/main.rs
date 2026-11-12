@@ -1,4 +1,4 @@
-//! Starts AI-Illustrator in the browser from compressed parts of its WebAssembly.
+//! Starts AI Вектор in the browser from compressed parts of its WebAssembly.
 //!
 //! Static hosts cap the size of one file (Cloudflare Pages: 25 MiB), and the app's wasm is at
 //! that size. `packaging/web/package.sh` gzips it and cuts it into parts listed in
@@ -275,12 +275,12 @@ mod boot {
                     Ok(()) => return,
                     Err(e) => e,
                 };
-                web_sys::console::error_2(&JsValue::from_str("ai-illustrator-boot: could not start AI-Illustrator:"), &error);
+                web_sys::console::error_2(&JsValue::from_str("ai-illustrator-boot: could not start AI Вектор:"), &error);
                 let Some(&wait) = RETRY_AFTER.get(attempt) else {
-                    say("AI-Illustrator не скачался с сервера. Проверьте, что папка скопирована целиком, и попробуйте ещё раз: ", true);
+                    say("AI Вектор не скачался с сервера. Проверьте, что папка скопирована целиком, и попробуйте ещё раз: ", true);
                     return;
                 };
-                say("Загрузка AI-Illustrator\u{2026} (скачать не вышло, пробую ещё раз)", false);
+                say("Загрузка AI Вектор\u{2026} (скачать не вышло, пробую ещё раз)", false);
                 sleep(wait).await;
                 attempt += 1;
             }

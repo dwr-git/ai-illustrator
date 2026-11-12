@@ -1,6 +1,6 @@
 [package]
 name = "vectorcraft-web-boot"
-description = "Starts AI-Illustrator in the browser from compressed parts of its WebAssembly"
+description = "Starts AI Вектор in the browser from compressed parts of its WebAssembly"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

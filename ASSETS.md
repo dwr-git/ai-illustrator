@@ -311,8 +311,9 @@ Generated-in-code art is original and has no file to list. This covers the defau
 | `assets/icons/waves.svg` | Lucide Icons and Contributors | https://lucide.dev (lucide-static v1.49.0; header kept in file) | ISC (`assets/icons/LICENSE-lucide.txt`) |  |
 | `assets/icons/x.svg` | Lucide Icons and Contributors | https://lucide.dev (lucide-static v1.49.0; header kept in file) | ISC; derived from Feather, also MIT (`assets/icons/LICENSE-lucide.txt`) |  |
 | `assets/icons/zoom-in.svg` | Lucide Icons and Contributors | https://lucide.dev (lucide-static v1.49.0; header kept in file) | ISC; derived from Feather, also MIT (`assets/icons/LICENSE-lucide.txt`) |  |
-| `studio/web/favicon.png`, `studio/web/apple-touch-icon.png` | AI-Illustrator contributors (drawn in code) | — (original) | MIT OR Apache-2.0 | AI-Illustrator's browser-tab and home-screen icon: a pen nib in a rounded frame |
-| `assets/app-icon/ai-illustrator-mark-128.png` | AI-Illustrator contributors (drawn in code) | — (original) | MIT OR Apache-2.0 | AI-Illustrator's mark in the title bar and About box: the favicon's pen nib, full-bleed |
+| `studio/web/favicon.png`, `studio/web/favicon-16.png`, `studio/web/favicon.ico` | Dewiar (project owner) | Dewiar favicon — owner's own artwork, provided by the project owner for use in these apps | provided by the project owner for use in these apps | Browser-tab icon, the same in every AI app |
+| `studio/web/apple-touch-icon.png` | Dewiar | original work made for this project (icon «vector», 512 px resized to 180 px) | MIT OR Apache-2.0 | Home-screen icon of AI Вектор |
+| `assets/app-icon/ai-illustrator-mark-128.png` | Dewiar | original work made for this project (icon «vector», 512 px resized to 128 px) | MIT OR Apache-2.0 | AI Вектор's mark in the title bar and About box |
 | `docs/images/dusk-poster.png` | VectorCraft contributors | Rendered by VectorCraft from `examples/dusk-poster.vectorcraft` | MIT OR Apache-2.0 |  |
 | `examples/dusk-poster.vectorcraft` | VectorCraft contributors | Original artwork built through the VectorCraft command API | MIT OR Apache-2.0 |  |
 | `examples/dusk-poster.svg` | VectorCraft contributors | SVG export of the above | MIT OR Apache-2.0 |  |

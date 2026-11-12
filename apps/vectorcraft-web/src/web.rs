@@ -149,7 +149,7 @@ async fn run(host: Host, canvas: web_sys::HtmlCanvasElement, moving: Option<Movi
             }
         }
         (Err(e), None) => notice(&[
-            &format!("AI-Illustrator не запустился: {}", js_err(e)),
+            &format!("AI Вектор не запустился: {}", js_err(e)),
             "Нужен браузер с WebGPU или WebGL2 (свежий Chrome, Edge, Firefox или Safari).",
         ]),
         (Err(e), Some(kept)) => {

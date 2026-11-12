@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Russian names for the assistant's command search.
 
-Reads the Russian UI catalog of AI-Illustrator (crates/ui-egui/src/i18n/ru.tsv) and writes
+Reads the Russian UI catalog of AI Вектор (crates/ui-egui/src/i18n/ru.tsv) and writes
 studio/web/ru-labels.json:
 
     {"text": {"Curves…": "Кривые…", ...}, "id": {"file.saveAs": "Сохранить как…", ...}}

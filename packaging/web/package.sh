@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Build the browser version and zip it:  $DIST/ai-corel-web-<version>.zip
+# Build the browser version and zip it:  $DIST/ai-illustrator-web-<version>.zip
 #
 # Usage: packaging/web/package.sh [--skip-build]
 #
 # Needs: trunk (cargo install trunk --locked) and the wasm32-unknown-unknown target. The zip holds
-# a self-contained static site in ai-corel-web-<version>/ that works from any URL path (any folder
+# a self-contained static site in ai-illustrator-web-<version>/ that works from any URL path (any folder
 # name). Hosting notes: packaging/web/README.md.
 #
 # The site holds the app's wasm gzipped and cut into parts (app/), started by the small
-# vectorcraft-web-boot module (shipped as ai-corel-<hash>.js), so no file is larger than a part and
+# vectorcraft-web-boot module (shipped as ai-illustrator-<hash>.js), so no file is larger than a part and
 # the page can show download progress (studio/loader.js reads data-app-bytes). dist/web still holds
 # the app as Trunk builds it, in one .wasm.
 set -euo pipefail
@@ -34,7 +34,7 @@ for site in "$APP" "$BOOT"; do
 done
 
 # Size limit: some hosts and CDNs reject single files over 25 MiB; parts stay well under it.
-PART_BYTES="${AI_COREL_WEB_PART_BYTES:-20971520}" # 20 MiB
+PART_BYTES="${AI_ILLUSTRATOR_WEB_PART_BYTES:-20971520}" # 20 MiB
 
 WASM=""
 for wasm in "$APP"/*_bg.wasm; do
@@ -46,10 +46,10 @@ done
 STEM="$(basename "$WASM" _bg.wasm)" # vectorcraft-web-<content hash>
 GLUE="$APP/$STEM.js"
 [[ -f "$GLUE" ]] || { echo "error: $GLUE missing" >&2; exit 1; }
-# The shipped parts carry the product name: ai-corel-<content hash>.part-aa, ...
-PART_STEM="ai-corel-${STEM#vectorcraft-web-}"
+# The shipped parts carry the product name: ai-illustrator-<content hash>.part-aa, ...
+PART_STEM="ai-illustrator-${STEM#vectorcraft-web-}"
 
-NAME="ai-corel-web-$VERSION"
+NAME="ai-illustrator-web-$VERSION"
 WORK="$CARGO_TARGET_DIR/web-package"
 rm -rf "$WORK"
 mkdir -p "$WORK/$NAME/app"
@@ -61,12 +61,12 @@ if [[ -d "$APP/fonts" ]]; then cp -R "$APP/fonts" "$WORK/$NAME/"; fi
 # The fixed name stays too, for a page from before (its boot module imports that).
 GLUE_NAME="$PART_STEM.js"
 cp "$GLUE" "$WORK/$NAME/app/$GLUE_NAME"
-cp "$GLUE" "$WORK/$NAME/app/ai-corel.js"
+cp "$GLUE" "$WORK/$NAME/app/ai-illustrator.js"
 # The parts keep the content hash, so they can be cached forever. Their extension is one no server
 # knows: a server that recognised gzip might decode or label it, and the page inflates the parts.
 gzip -9 -n -c "$WASM" | (cd "$WORK/$NAME/app" && split -b "$PART_BYTES" - "$PART_STEM.part-")
 {
-  echo "ai-corel-parts 1"
+  echo "ai-illustrator-parts 1"
   echo "# loader $GLUE_NAME"
   for part in "$WORK/$NAME/app/$PART_STEM".part-*; do basename "$part"; done
 } >"$WORK/$NAME/app/parts.txt"

@@ -1,4 +1,4 @@
-//! Help links. AI-Corel works offline from a folder on the user's own server, so it sends nobody to
+//! Help links. AI-Illustrator works offline from a folder on the user's own server, so it sends nobody to
 //! outside sites: there are no link commands (the original project's Discord, website and GitHub
 //! links were removed). `help.links` stays for callers that ask, and answers with no links.
 
@@ -7,7 +7,7 @@ use serde_json::json;
 use super::*;
 
 pub fn specs() -> Vec<CommandSpec> {
-    vec![cmd!(query "help.links", "Links", [], None, "{} → {} (no outside links: AI-Corel works offline)", always, |_, _| Ok(json!({})))]
+    vec![cmd!(query "help.links", "Links", [], None, "{} → {} (no outside links: AI-Illustrator works offline)", always, |_, _| Ok(json!({})))]
 }
 
 #[cfg(test)]

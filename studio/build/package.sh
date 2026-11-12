@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Builds AI-Corel: the browser app plus the assistant panel and its PHP, as one folder ready for
-# the server, zipped:  $DIST/ai-corel-build-<N>-<date>.zip  →  ai-corel/
+# Builds AI-Illustrator: the browser app plus the assistant panel and its PHP, as one folder ready for
+# the server, zipped:  $DIST/ai-illustrator-build-<N>-<date>.zip  →  ai-illustrator/
 # The folder works under any name: every path in it is relative.
 #
 # Usage: studio/build/package.sh [--skip-build]
@@ -15,8 +15,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 "$ROOT/packaging/web/package.sh" "$@"
 
-# The site packaging/web/package.sh assembled (ai-corel-web-<version>/ under web-package).
-SITE="$CARGO_TARGET_DIR/web-package/ai-corel-web-$VERSION"
+# The site packaging/web/package.sh assembled (ai-illustrator-web-<version>/ under web-package).
+SITE="$CARGO_TARGET_DIR/web-package/ai-illustrator-web-$VERSION"
 if [ ! -f "$SITE/index.html" ]; then
   SITE="$(dirname "$(ls -d "$CARGO_TARGET_DIR"/web-package/*/index.html 2>/dev/null | head -n 1)")"
 fi
@@ -25,8 +25,8 @@ fi
 OUT="$CARGO_TARGET_DIR/studio-package"
 rm -rf "$OUT"
 mkdir -p "$OUT"
-cp -R "$SITE" "$OUT/ai-corel"
-APP="$OUT/ai-corel"
+cp -R "$SITE" "$OUT/ai-illustrator"
+APP="$OUT/ai-illustrator"
 # Upstream hosting notes (they describe the original project); this folder has its own README.
 rm -f "$APP/HOSTING.md"
 
@@ -34,7 +34,7 @@ rm -f "$APP/HOSTING.md"
 mkdir -p "$APP/studio"
 cp "$ROOT/studio/web/studio.js" "$ROOT/studio/web/studio.css" "$ROOT/studio/web/config.js" "$ROOT/studio/web/loader.js" "$APP/studio/"
 cp "$ROOT/studio/web/.htaccess" "$APP/studio/"
-# AI-Corel's own icon: the pen nib in the frame the other AI- apps share.
+# AI-Illustrator's own icon: the pen nib in the frame the other AI- apps share.
 cp "$ROOT/studio/web/favicon.png" "$ROOT/studio/web/apple-touch-icon.png" "$APP/"
 python3 "$ROOT/studio/build/make_labels.py" "$APP/studio/ru-labels.json"
 
@@ -65,9 +65,9 @@ grep -q "studio/loader.js?v=$STAMP" "$APP/index.html" || { echo "error: the page
 if grep -rIlE "(src|href)=\"(https?:)?//" "$APP" --include=*.html >/dev/null; then echo "error: a page loads something from another site" >&2; exit 1; fi
 grep -q 'data-app-bytes="[1-9]' "$APP/index.html" || { echo "error: the page does not know the download size" >&2; exit 1; }
 
-# Номер сборки (GitHub Actions передаёт AI_COREL_BUILD) и дата — в имени архива и внутри папки,
+# Номер сборки (GitHub Actions передаёт AI_ILLUSTRATOR_BUILD) и дата — в имени архива и внутри папки,
 # чтобы было видно, какая версия скачана и какая стоит на сервере (панель помощника пишет её в шапке).
-BUILD="${AI_COREL_BUILD:-local}"
+BUILD="${AI_ILLUSTRATOR_BUILD:-local}"
 BUILD_DATE="$(TZ=Europe/Minsk date +%Y-%m-%d)"
 # Файлы, которые меняются от сборки к сборке, но могли бы сохранить прежний размер, получают
 # «набивку» разной длины: программы заливки, которые пропускают файлы того же размера, всё равно
@@ -81,7 +81,7 @@ sed -i.bak "s#<html lang=\"ru\"#<html lang=\"ru\" data-build=\"$BUILD\"#" "$APP/
 grep -q "data-build=\"$BUILD\"" "$APP/index.html" || { echo "error: the page has no build number" >&2; exit 1; }
 # Каждая сборка — в своей папке b/<номер>/, index.php выбирает самую новую (studio/build/versioned.sh):
 # обновление любой программой заливки не может смешать файлы разных сборок.
-"$ROOT/studio/build/versioned.sh" "$APP" "$BUILD" "AI-Corel"
+"$ROOT/studio/build/versioned.sh" "$APP" "$BUILD" "AI-Illustrator"
 # Каждый текстовый файл с постоянным именем (страница, index.php, скрипты и стили панели, PHP
 # помощника, файл запуска с постоянным именем) получает в конце строку с номером сборки и набивкой
 # той же разной длины: иначе программа заливки, которая пропускает файлы того же размера, оставит
@@ -96,8 +96,8 @@ pad_file() {
 }
 while IFS= read -r f; do pad_file "$f"; done < <(find "$APP" -type f \( -name '*.html' -o -name '*.js' -o -name '*.css' -o -name '*.php' \) | grep -vE '[-_][0-9a-f]{16}[-_.][^/]*$')
 cat "$APP"/b/*/index.html | grep -q "<!-- build $BUILD " || { echo "error: the page has no build padding" >&2; exit 1; }
-ZIP="$DIST/ai-corel-build-$BUILD-$BUILD_DATE.zip"
+ZIP="$DIST/ai-illustrator-build-$BUILD-$BUILD_DATE.zip"
 rm -f "$ZIP"
-(cd "$OUT" && zip -qr9 "$ZIP" ai-corel)
+(cd "$OUT" && zip -qr9 "$ZIP" ai-illustrator)
 echo "wrote $ZIP"
 ls -lh "$ZIP"

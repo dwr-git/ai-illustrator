@@ -1,18 +1,18 @@
 <?php
-// studio/api/settings.php — настройки помощника AI-Corel.
+// studio/api/settings.php — настройки помощника AI-Illustrator.
 //
 // Всё читается из окружения (.env вашей системы), поэтому этот файл обычно
 // трогать не нужно. Любую строку можно переопределить переменной окружения.
 //
-//   AI_COREL_AUTH_FILE       путь к auth.php системы (по умолчанию ищется
+//   AI_ILLUSTRATOR_AUTH_FILE       путь к auth.php системы (по умолчанию ищется
 //                            на два уровня выше: /app/src/auth.php)
-//   AI_COREL_ALLOW_ANON      1 — работать без входа (только для теста на localhost!)
-//   AI_COREL_OLLAMA_URL      адрес Ollama/шлюза, например http://10.0.0.5:11434
+//   AI_ILLUSTRATOR_ALLOW_ANON      1 — работать без входа (только для теста на localhost!)
+//   AI_ILLUSTRATOR_OLLAMA_URL      адрес Ollama/шлюза, например http://10.0.0.5:11434
 //                            (по умолчанию берётся OLLAMA_IP:OLLAMA_PORT из config.php)
-//   AI_COREL_MODEL           модель помощника (по умолчанию GLOBAL_MODEL)
-//   AI_COREL_CONTEXT         размер контекста (по умолчанию GLOBAL_MODEL_CONTEXT или 32768)
-//   AI_COREL_TIMEOUT         сколько секунд ждать ответа модели (по умолчанию 180)
-//   AI_COREL_MAX_TOKENS      максимум токенов в ответе (по умолчанию 2048)
+//   AI_ILLUSTRATOR_MODEL           модель помощника (по умолчанию GLOBAL_MODEL)
+//   AI_ILLUSTRATOR_CONTEXT         размер контекста (по умолчанию GLOBAL_MODEL_CONTEXT или 32768)
+//   AI_ILLUSTRATOR_TIMEOUT         сколько секунд ждать ответа модели (по умолчанию 180)
+//   AI_ILLUSTRATOR_MAX_TOKENS      максимум токенов в ответе (по умолчанию 2048)
 //
 
 if (!function_exists('studio_env')) {
@@ -26,7 +26,7 @@ if (!function_exists('studio_env')) {
     }
 }
 
-$__studioAuth = studio_env('AI_COREL_AUTH_FILE');
+$__studioAuth = studio_env('AI_ILLUSTRATOR_AUTH_FILE');
 if ($__studioAuth === '') {
     foreach ([__DIR__ . '/../../auth.php', __DIR__ . '/../../../auth.php', '/app/src/auth.php'] as $__p) {
         if (is_file($__p)) { $__studioAuth = $__p; break; }
@@ -37,7 +37,7 @@ return [
     // Файл авторизации системы. Пусто — не найден.
     'auth_file'       => $__studioAuth,
     // Без входа работать нельзя, если явно не разрешено.
-    'allow_anonymous' => studio_env('AI_COREL_ALLOW_ANON') === '1',
+    'allow_anonymous' => studio_env('AI_ILLUSTRATOR_ALLOW_ANON') === '1',
     // Ограничения запроса от браузера.
     'max_body_bytes'  => 16 * 1024 * 1024,   // скриншоты в base64 тяжёлые
     'max_messages'    => 80,
@@ -45,6 +45,6 @@ return [
     'max_image_bytes' => 6 * 1024 * 1024,
     // Модель и время ожидания (адрес и модель досчитываются в assistant.php
     // после подключения config.php системы).
-    'timeout'         => (int)studio_env('AI_COREL_TIMEOUT', '180'),
-    'max_tokens'      => (int)studio_env('AI_COREL_MAX_TOKENS', '2048'),
+    'timeout'         => (int)studio_env('AI_ILLUSTRATOR_TIMEOUT', '180'),
+    'max_tokens'      => (int)studio_env('AI_ILLUSTRATOR_MAX_TOKENS', '2048'),
 ];

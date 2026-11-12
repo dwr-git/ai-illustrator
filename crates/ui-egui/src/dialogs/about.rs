@@ -1,4 +1,4 @@
-//! Help → About AI-Corel.
+//! Help → About AI-Illustrator.
 
 use crate::VectorcraftApp;
 use crate::theme;
@@ -9,7 +9,7 @@ pub(super) fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
         return;
     }
     let mut open = true;
-    egui::Window::new(tl!("About AI-Corel"))
+    egui::Window::new(tl!("About AI-Illustrator"))
         .collapsible(false)
         .resizable(false)
         .open(&mut open)
@@ -45,7 +45,7 @@ pub(super) fn show(app: &mut VectorcraftApp, ctx: &egui::Context) {
     app.ui.about = open;
 }
 
-/// The About tab: mark, version, licences and the GPU in use. No outside links: AI-Corel works
+/// The About tab: mark, version, licences and the GPU in use. No outside links: AI-Illustrator works
 /// offline, from its folder on the user's server.
 fn about_tab(app: &mut VectorcraftApp, ui: &mut egui::Ui) {
     ui.set_width(380.0);

@@ -1,4 +1,4 @@
-/* AI-Corel — помощник внутри векторного редактора.
+/* AI-Illustrator — помощник внутри векторного редактора.
  *
  * Панель в браузере разговаривает с моделью через api/assistant.php, а действия
  * выполняет в самом редакторе через window.vectorcraft (apps/vectorcraft-web/src/api.rs):
@@ -14,9 +14,11 @@
     labels: 'studio/ru-labels.json',
     language: 'ru',            // язык интерфейса редактора, если в настройках «как в системе»; '' — не трогать
     defaultTheme: 'brand',     // тема при первом запуске
-    maxSteps: 10,              // сколько шагов подряд помощник может сделать за один запрос
+    maxSteps: 40,              // шагов подряд в «Сделай» по умолчанию (в панели: шестерёнка → 10…без ограничений)
     screenshotMax: 1024,       // длинная сторона снимка экрана для модели, px
     openOnStart: false,
+    files: 'api/files.php',    // «Мои файлы» на сервере; '' — выключить
+    filesOnStart: true,        // показать «Мои файлы» при запуске, если там уже что-то есть
   }, window.STUDIO_CONFIG || {});
   // Страница сборки лежит в b/<номер>/ (studio/build/versioned.sh); адреса из настроек — от папки приложения.
   const fromRoot = (p) => { try { return new URL(p, window.STUDIO_ROOT || document.baseURI).href; } catch { return p; } };
@@ -48,16 +50,16 @@
       return PC.call('engine.execute', { command: id, params: p });
     },
   };
-  // Для своих скриптов и отладки из консоли: await aicorel.call('ui.inspect')
-  window.aicorel = { call: PC.call, exec: PC.exec };
+  // Для своих скриптов и отладки из консоли: await aiillustrator.call('ui.inspect')
+  window.aiillustrator = { call: PC.call, exec: PC.exec };
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const withTimeout = (p, ms, what) => Promise.race([p, sleep(ms).then(() => { throw new Error(what + ': нет ответа'); })]);
   const clip = (s, n) => (s.length > n ? s.slice(0, n) + '…[обрезано]' : s);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const store = {
-    get(k, d) { try { const v = localStorage.getItem('aicorel.' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
-    set(k, v) { try { localStorage.setItem('aicorel.' + k, JSON.stringify(v)); } catch { /* приватный режим */ } },
+    get(k, d) { try { const v = localStorage.getItem('aiillustrator.' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem('aiillustrator.' + k, JSON.stringify(v)); } catch { /* приватный режим */ } },
   };
 
   // ------------------------------------------------------------------ русские названия
@@ -246,6 +248,7 @@
 
   // ------------------------------------------------------------------ интерфейс
   const ICON = {
+    gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>',
     spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>',
     bulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
     hand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-9 9H5v-6z"/><path d="M12.5 5.5l6 6"/></svg>',
@@ -258,6 +261,9 @@
     stop: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>',
     // Мозг — контур из набора Tabler Icons (MIT), нарисованный градиентом #st-brain-grad.
     brain: '<svg class="st-brain-svg" viewBox="0 0 24 24" fill="none" stroke="url(#st-brain-grad)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 13a3.5 3.5 0 0 0 -3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8"/><path d="M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1 -7 0v-1.8"/><path d="M17.5 16a3.5 3.5 0 0 0 0 -7h-.5"/><path d="M19 9.3v-2.8a3.5 3.5 0 0 0 -7 0"/><path d="M6.5 16a3.5 3.5 0 0 1 0 -7h.5"/><path d="M5 9.3v-2.8a3.5 3.5 0 0 1 7 0v10"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+    file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg>',
+    x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     bolt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3l-8 11h6l-1 7 8-11h-6z"/></svg>',
   };
   // Живой контур: мозг градиентом и три точки на орбите, пока помощник работает.
@@ -274,6 +280,7 @@
       <header class="st-head">
         <div class="st-logo st-brain st-raised-sm" aria-hidden="true">${BRAIN}</div>
         <div class="st-title"><b>Помощник</b><small data-ref="sub">Загрузка редактора…</small></div>
+        <button class="st-icon-btn" data-ref="filesBtn" title="Мои файлы (на сервере)" aria-label="Мои файлы">${ICON.folder}</button>
         <button class="st-icon-btn" data-ref="barBtn" title="Быстрая строка (Ctrl+Shift+Пробел)" aria-label="Быстрая строка">${ICON.bolt}</button>
         <div class="st-theme-wrap">
           <button class="st-icon-btn" data-ref="theme" title="Тема оформления" aria-label="Тема оформления" aria-haspopup="menu" aria-expanded="false">${ICON.palette}</button>
@@ -293,9 +300,37 @@
           <textarea data-ref="input" rows="1" placeholder="Спросите или попросите…" aria-label="Сообщение помощнику"></textarea>
           <button class="st-send" data-ref="send" title="Отправить (Enter)" aria-label="Отправить">${ICON.send}</button>
         </div>
-        <div class="st-foot"><span>Ctrl+Z — отменить · Ctrl+Shift+Пробел — строка</span><button data-ref="clear">Новый разговор</button></div>
+        <div class="st-foot"><span>Ctrl+Z — отменить</span><span class="st-agent-wrap"><button data-ref="agentBtn" title="Сколько шагов подряд делать и спрашивать ли перед удалением" aria-haspopup="menu" aria-expanded="false">${ICON.gear}Настройки</button><span class="st-theme-menu st-agent-menu" data-ref="agentMenu" role="menu" hidden></span></span><button data-ref="clear">Новый разговор</button></div>
       </div>
     </aside>
+    <div class="st-files" data-ref="files" role="dialog" aria-modal="true" aria-label="Мои файлы" hidden>
+      <div class="st-files-box">
+        <header class="st-files-head">
+          <b>Мои файлы</b><small data-ref="filesWho"></small>
+          <button class="st-icon-btn" data-ref="filesClose" title="Закрыть (Esc)" aria-label="Закрыть">${ICON.x}</button>
+        </header>
+        <div class="st-files-tools">
+          <input data-ref="filesSearch" type="search" placeholder="Поиск по имени" aria-label="Поиск по имени">
+          <button class="st-mini" data-ref="filesNew">Новый документ</button>
+          <button class="st-mini" data-ref="filesUpload" title="Открыть файл с этого компьютера: .vectorcraft, .svg, .pdf, .ai, .eps">С компьютера…</button>
+        </div>
+        <div class="st-files-list" data-ref="filesList"></div>
+        <footer class="st-files-foot">
+          <span data-ref="filesCurrent"></span>
+          <button class="st-mini" data-ref="filesDownload" title="Скачать открытый документ на этот компьютер">На компьютер</button>
+          <button class="st-mini" data-ref="filesSaveAs">Сохранить как…</button>
+          <button class="st-mini primary" data-ref="filesSave" title="Ctrl+S">Сохранить</button>
+        </footer>
+      </div>
+    </div>
+    <div class="st-ask" data-ref="ask" role="dialog" aria-modal="true" hidden>
+      <form class="st-ask-box">
+        <b data-ref="askTitle"></b>
+        <input data-ref="askInput" type="text" maxlength="120" aria-label="Имя файла">
+        <small data-ref="askNote"></small>
+        <div class="st-row"><button type="button" class="st-mini" data-ref="askCancel">Отмена</button><button type="button" class="st-mini" data-ref="askAlt" hidden></button><button type="submit" class="st-mini primary" data-ref="askOk">Сохранить</button></div>
+      </form>
+    </div>
     <button class="st-fab st-brain" data-ref="fab" title="Помощник" aria-label="Открыть помощника">${BRAIN}<span class="st-badge" aria-hidden="true"></span></button>
     <div class="st-bar" data-ref="bar" role="dialog" aria-label="Быстрая строка помощника">
       <div class="st-bar-answer" data-ref="barAnswer"></div>
@@ -434,14 +469,68 @@
       d.appendChild(b);
     }
   }
+  // ------------------------------------------------------------------ настройки помощника
+  // Сколько шагов подряд делать в «Сделай» (потом — кнопка «Продолжить») и спрашивать ли перед
+  // удалением, закрытием, сбросом. Хранятся в этом браузере; меню — «Настройки» внизу панели.
+  const STEP_CHOICES = [10, 25, 40, 100, 0]; // 0 — без ограничений
+  const stepSetting = () => { const v = Number(store.get('agentSteps', CFG.maxSteps)); return Number.isFinite(v) && v >= 0 ? v : CFG.maxSteps; };
+  const agentSteps = () => (stepSetting() > 0 ? stepSetting() : Infinity);
+  const askBeforeRisky = () => store.get('agentConfirm', true) !== false;
+  function renderAgentMenu() {
+    const menu = $('agentMenu');
+    if (!menu) return;
+    const cur = stepSetting();
+    menu.innerHTML = '<div class="st-menu-title">Шагов подряд в «Сделай»</div>'
+      + STEP_CHOICES.map((n) => `<button role="menuitemradio" aria-checked="${n === cur}" data-steps="${n}">${n ? n : 'Без ограничений'}</button>`).join('')
+      + '<hr><label class="st-menu-check"><input type="checkbox" data-k="agentConfirm"' + (askBeforeRisky() ? ' checked' : '') + '><span>Спрашивать перед удалением, закрытием и сбросом</span></label>'
+      + '<label class="st-menu-check"><input type="checkbox" data-k="agentLook"' + (store.get('agentLook', true) ? ' checked' : '') + '><span>Смотреть на результат после каждой серии шагов (если включён «глаз»)</span></label>';
+    menu.querySelectorAll('[data-steps]').forEach((b) => { b.onclick = () => { store.set('agentSteps', Number(b.dataset.steps)); renderAgentMenu(); }; });
+    menu.querySelectorAll('input[data-k]').forEach((c) => { c.onchange = () => store.set(c.dataset.k, c.checked); });
+  }
+  function toggleAgentMenu(open) {
+    const menu = $('agentMenu');
+    if (!menu) return;
+    const show = open == null ? menu.hidden : open;
+    if (show) renderAgentMenu();
+    menu.hidden = !show;
+    $('agentBtn').setAttribute('aria-expanded', String(show));
+  }
+  function initAgentMenu() {
+    const btn = $('agentBtn');
+    if (!btn) return;
+    btn.onclick = (e) => { e.stopPropagation(); toggleAgentMenu(); };
+    document.addEventListener('pointerdown', (e) => {
+      const menu = $('agentMenu');
+      if (menu && !menu.hidden && !menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) toggleAgentMenu(false);
+    }, true);
+  }
+  let allowAllThisTurn = false;
+  let autoAllowNoted = false;
   function confirmAction(text) {
+    if (!askBeforeRisky() || allowAllThisTurn) {
+      if (!autoAllowNoted) {
+        autoAllowNoted = true;
+        msg('note', 'Необратимые действия выполняю без вопроса — так выбрано. Вернуть вопросы: «Настройки» внизу панели. Отменить шаг — Ctrl+Z.');
+      }
+      return Promise.resolve(true);
+    }
     return new Promise((resolve) => {
       const d = document.createElement('div');
       d.className = 'st-confirm st-raised';
-      d.innerHTML = `<p>${esc(text)}</p><div class="st-row"><button class="st-mini danger" data-a="no">Не надо</button><button class="st-mini" data-a="yes">Разрешить</button></div>`;
+      d.innerHTML = `<p>${esc(text)}</p>`
+        + '<label class="st-confirm-check"><input type="checkbox"> Больше не спрашивать (вернуть — «Настройки» внизу панели)</label>'
+        + '<div class="st-row"><button class="st-mini danger" data-a="no">Не надо</button>'
+        + '<button class="st-mini" data-a="all" title="Не спрашивать до конца этой просьбы">Разрешать всё в этой задаче</button>'
+        + '<button class="st-mini" data-a="yes">Разрешить</button></div>';
       add(d);
       d.querySelectorAll('button').forEach((b) => {
-        b.onclick = () => { d.remove(); resolve(b.dataset.a === 'yes'); };
+        b.onclick = () => {
+          const yes = b.dataset.a !== 'no';
+          if (yes && d.querySelector('input').checked) store.set('agentConfirm', false);
+          if (b.dataset.a === 'all') allowAllThisTurn = true;
+          d.remove();
+          resolve(yes);
+        };
       });
     });
   }
@@ -575,13 +664,77 @@
   }
 
   // ------------------------------------------------------------------ разговор с моделью
+  // Память разговора. У модели ограниченный контекст (CTX токенов, сервер сообщает его при запуске);
+  // если история не влезает, сервер модели молча отрезает её начало — вместе с задачей, и помощник
+  // начинает ходить по кругу. Поэтому прошлые просьбы уходят сжато (просьба и итог, без шагов и
+  // снимков), текущая — целиком; если и она не влезает, сначала сокращаются старые результаты шагов,
+  // потом выпадают самые ранние шаги, но сама просьба остаётся всегда.
+  let CTX = 32768;
+  let turnStart = 0;
+  const AUTO_STATE = /\n\n\[Состояние [^\]]*— автоматически\][\s\S]*$/;
+  const AUTO_MSG = /^\[(Снимок экрана|Состояние)[^\]]*автоматически\]/;
+  const plainText = (t) => String(t || '').replace(/<tool_call>[\s\S]*?<\/tool_call>/g, '').replace(/<think>[\s\S]*?<\/think>/g, '')
+    .replace(/<?function=[\w.-]+>[\s\S]*?(<\/function>|$)/g, '').replace(/<\/?tool_call>/g, '').trim();
+  const sizeOf = (m) => String(m.content || '').length + (m.tool_calls ? JSON.stringify(m.tool_calls).length : 0) + (m.images ? m.images.length * 3500 : 0);
   function outgoing() {
-    // Картинки тяжёлые и занимают много контекста: отправляем только последний снимок.
-    const out = convo.slice(-60).map((m) => ({ ...m }));
+    const start = Math.min(Math.max(0, turnStart), convo.length);
+    const older = [];
+    for (const m of convo.slice(0, start)) {
+      if (m.role === 'tool') continue;
+      if (m.role === 'user') {
+        if (AUTO_MSG.test(String(m.content || ''))) continue;
+        older.push({ role: 'user', content: clip(String(m.content || '').replace(AUTO_STATE, ''), 1500) });
+      } else if (m.role === 'assistant') {
+        const text = plainText(m.content);
+        const names = [...new Set((m.tool_calls || []).map((c) => c.function && c.function.name).filter(Boolean))];
+        const line = text ? clip(text, 1200) : (names.length ? '[Выполнено: ' + names.join(', ') + ']' : '');
+        if (!line) continue;
+        const last = older[older.length - 1];
+        if (last && last.role === 'assistant') last.content = clip(last.content + '\n' + line, 2400);
+        else older.push({ role: 'assistant', content: line });
+      }
+    }
+    const recent = older.slice(-16);
+    while (recent.length && recent[0].role !== 'user') recent.shift();
+    const out = recent.concat(convo.slice(start).map((m) => ({ ...m })));
+    // Только последний снимок экрана: картинки тяжёлые.
     let images = 0;
     for (let i = out.length - 1; i >= 0; i--) {
       if (!out[i].images) continue;
       if (images >= 1) delete out[i].images; else images += out[i].images.length;
+    }
+    const budget = Math.max(12000, Math.round(CTX * 2.6) - 22000);
+    let total = out.reduce((n, m) => n + sizeOf(m), 0);
+    let task = out.length - (convo.length - start); // где в out начинается текущая просьба
+    // 1) прошлые просьбы, начиная с самых старых
+    while (total > budget && task > 0) {
+      total -= sizeOf(out.shift());
+      task--;
+      while (task > 0 && out[0].role !== 'user') { total -= sizeOf(out.shift()); task--; }
+    }
+    // 2) старые результаты шагов и устаревшие состояния текущей просьбы
+    for (let i = task + 1; total > budget && i < out.length - 6; i++) {
+      const m = out[i];
+      if ((m.role === 'tool' || AUTO_MSG.test(String(m.content || ''))) && String(m.content || '').length > 400) {
+        total -= sizeOf(m);
+        m.content = clip(String(m.content), 300);
+        delete m.images;
+        total += sizeOf(m);
+      }
+    }
+    // 3) самые ранние шаги текущей просьбы (целыми группами: ответ модели и результаты его шагов)
+    let dropped = 0;
+    while (total > budget && out.length - (task + 1) > 8) {
+      let end = task + 2;
+      while (end < out.length - 8 && out[end].role !== 'assistant') end++;
+      const removed = out.splice(task + 1, end - (task + 1));
+      if (!removed.length) break;
+      dropped += removed.length;
+      total -= removed.reduce((n, m) => n + sizeOf(m), 0);
+    }
+    if (dropped) {
+      out.splice(task + 1, 0, { role: 'user', content: `[Ранние шаги этой просьбы (${dropped} сообщ.) убраны, чтобы уместиться в память модели. Что уже сделано — смотри по последнему состоянию.]` });
+      if (out[task + 2] && out[task + 2].role === 'tool') out.splice(task + 2, 0, { role: 'assistant', content: '[продолжаю]' });
     }
     return out;
   }
@@ -624,7 +777,7 @@
     try {
       r = await post(payload);
     } catch (e) {
-      console.warn('AI-Corel: запрос к помощнику оборвался', e);
+      console.warn('AI-Illustrator: запрос к помощнику оборвался', e);
       if (!hasImages(payload)) throw new Error(await explainNoAnswer(took()));
       try { r = await post(withoutImages(payload)); } catch { throw new Error(await explainNoAnswer(took())); }
       tellImagesBlocked();
@@ -667,6 +820,9 @@
     if (field) { field.value = ''; autosize(); }
     setBusy(true);
     stopRequested = false;
+    allowAllThisTurn = false;
+    autoAllowNoted = false;
+    seen = new Map();
     msg('user', esc(text));
     try {
       let state = null;
@@ -675,16 +831,55 @@
         state = await snapshot().catch((e) => ({ error: e.message }));
         if (attachScreen) image = await screenshot();
       }
+      turnStart = convo.length;
       convo.push({
         role: 'user',
         content: MODE_TAG[mode] + '\n' + text + '\n\n[Состояние редактора — автоматически]\n' + clip(JSON.stringify(state ?? { note: 'Редактор ещё загружается' }), 4000),
         ...(image ? { images: [image] } : {}),
       });
-      for (let step = 0; step < CFG.maxSteps; step++) {
-        if (stopRequested) { msg('bot', 'Остановлено.'); break; }
-        typing(true);
-        const j = await ask();
-        typing(false);
+      await runSteps();
+    } catch (e) {
+      turnFailed(e);
+    } finally {
+      turnDone();
+    }
+  }
+  // Продолжить ту же просьбу после остановки по числу шагов (без нового сообщения).
+  async function continueTurn() {
+    if (busy) return;
+    setBusy(true);
+    stopRequested = false;
+    try { await runSteps(); } catch (e) { turnFailed(e); } finally { turnDone(); }
+  }
+  function turnFailed(e) {
+    typing(false);
+    if (e.noVision) setEye(false);
+    msg('err', esc(e.message || String(e)));
+  }
+  function turnDone() {
+    typing(false);
+    setBusy(false);
+    root.classList.remove('acting');
+    updateBarAnswer();
+  }
+  // Повторы считаются за всю просьбу, в том числе после «Продолжить».
+  let seen = new Map();
+  async function runSteps() {
+    const limit = agentSteps();
+    for (let step = 0; ; step++) {
+      if (stopRequested) { msg('bot', 'Остановлено.'); break; }
+      if (step >= limit) {
+        const d = msg('note', `Сделал ${limit} шагов подряд и остановился (так задано: «Настройки» внизу панели). `);
+        const b = document.createElement('button');
+        b.className = 'st-mini';
+        b.textContent = 'Продолжить';
+        b.onclick = () => { b.disabled = true; continueTurn(); };
+        d.appendChild(b);
+        break;
+      }
+      typing(true);
+      const j = await ask();
+      typing(false);
         const m = j.message || {};
         let calls = Array.isArray(m.tool_calls) ? m.tool_calls : [];
         let content = (m.content || '').replace(/<tool_call>[\s\S]*?<\/tool_call>/g, '').replace(/<think>[\s\S]*?<\/think>/g, '')
@@ -703,28 +898,41 @@
         if (content) msg('bot', format(content));
         if (!calls.length) break;
         let pendingImage = null;
+        let acted = false;
         for (const c of calls) {
           if (stopRequested) break;
           const fname = c.function && c.function.name;
           let a = (c.function && c.function.arguments) || {};
           if (typeof a === 'string') { try { a = JSON.parse(a || '{}'); } catch { a = {}; } }
+          const sig = fname + ' ' + JSON.stringify(a || {});
+          const times = (seen.get(sig) || 0) + 1;
+          seen.set(sig, times);
           let result;
           try { result = await runTool(fname, a || {}); } catch (e) { result = { ok: false, error: e.message || String(e) }; }
           if (result && result.__image) { pendingImage = result.__image; delete result.__image; }
+          const reading = READ_TOOLS.has(fname);
+          if (!reading) acted = true;
+          // Одно и то же действие по кругу — подсказываем модели остановиться и проверить результат.
+          if (times >= (reading ? 4 : 3)) {
+            const warning = `Ты уже ${times} раз(а) вызывал ${fname} с теми же параметрами. Не повторяй. `
+              + (reading ? 'Всё нужное уже получено — действуй или заверши ответ.' : 'Проверь результат (get_state или look_at_screen) и переходи к следующей части задачи; если задача выполнена — заверши её коротким итогом.');
+            result = (result && typeof result === 'object' && !Array.isArray(result)) ? { ...result, warning } : { result, warning };
+          }
           convo.push({ role: 'tool', tool_name: fname, content: clip(JSON.stringify(result ?? { ok: true }), 6000) });
         }
-        if (pendingImage) convo.push({ role: 'user', content: '[Снимок экрана после действий — прислан автоматически]', images: [pendingImage] });
-        if (step === CFG.maxSteps - 1) msg('bot', `Сделал ${CFG.maxSteps} шагов подряд и остановился. Напишите «продолжай», если нужно дальше.`);
-      }
-    } catch (e) {
-      typing(false);
-      if (e.noVision) setEye(false);
-      msg('err', esc(e.message || String(e)));
-    } finally {
-      typing(false);
-      setBusy(false);
-      root.classList.remove('acting');
-      updateBarAnswer();
+        // После действий — свежее состояние документа (и снимок, если помощнику можно смотреть
+        // на экран): модель видит, что уже сделано, и не рисует одно и то же заново.
+        if (acted && !stopRequested && PC.ready()) {
+          const st = await snapshot().catch(() => null);
+          if (!pendingImage && attachScreen && store.get('agentLook', true)) pendingImage = await screenshot().catch(() => null);
+          convo.push({
+            role: 'user',
+            content: '[Состояние после этих шагов — автоматически]\n' + clip(JSON.stringify(st ?? {}), 3500) + (pendingImage ? '\n(снимок экрана приложен)' : ''),
+            ...(pendingImage ? { images: [pendingImage] } : {}),
+          });
+        } else if (pendingImage) {
+          convo.push({ role: 'user', content: '[Снимок экрана после действий — прислан автоматически]', images: [pendingImage] });
+        }
     }
   }
 
@@ -807,6 +1015,320 @@
       try { VC().openFile(f.name, new Uint8Array(await f.arrayBuffer())); } catch (err) { toast('Не удалось открыть ' + f.name + ': ' + (err.message || err), true); }
     }
   });
+
+  // Мост для «Моих файлов» (apps/vectorcraft-web/src/api.rs): openFile, takesSaves.
+  const VC_SAVES = () => VC();
+  function openInEditor(name, bytes) {
+    return !!(VC() && typeof VC().openFile === 'function' && VC().openFile(name, bytes));
+  }
+  // Редактор отметил документ сохранённым, как только отдал его: подтверждать нечего.
+  function confirmSaved() {}
+  // Отказ от сохранения на сервер не должен потерять файл: редактор уже считает его сохранённым.
+  function notSaved(appName, bytes) {
+    if (downloadBytes(appName, bytes)) toast('На сервер не сохранено — файл «' + appName + '» скачан на компьютер.');
+  }
+  const saveCommand = (saveAs) => PC.exec(saveAs ? 'file.saveAs' : 'file.save');
+  const newDocument = () => PC.exec('file.new');
+
+  // ------------------------------------------------------------------ мои файлы на сервере
+  // У каждого пользователя своя папка на сервере (api/files.php). Сохранение документа в редакторе
+  // (Ctrl+S, Файл › Сохранить, Сохранить как) приходит сюда событием vectorcraft:save и уходит на сервер;
+  // если сервер его не принял — файл сразу скачивается на компьютер, а копия остаётся в браузере.
+  const fmtSize = (n) => (n < 1024 ? n + ' Б' : n < 1048576 ? Math.round(n / 1024) + ' КБ' : (n / 1048576).toFixed(1).replace('.', ',') + ' МБ');
+  const fmtDate = (t) => {
+    if (!t) return '';
+    const d = new Date(t * 1000), now = new Date();
+    const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    if (d.toDateString() === now.toDateString()) return 'сегодня, ' + time;
+    return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: d.getFullYear() === now.getFullYear() ? undefined : 'numeric' }) + ', ' + time;
+  };
+
+  // Окно с одним полем: имя файла. Возвращает имя, null (Отмена) или ASK_ALT (вторая кнопка).
+  const ASK_ALT = 'alt';
+  function askName(title, value, note, alt) {
+    return new Promise((resolve) => {
+      const box = $('ask');
+      const form = box.querySelector('form');
+      const field = $('askInput');
+      const altBtn = $('askAlt');
+      $('askTitle').textContent = title;
+      $('askNote').textContent = note || '';
+      altBtn.hidden = !alt;
+      altBtn.textContent = alt || '';
+      field.value = value || '';
+      box.hidden = false;
+      // Выделено имя без расширения: его обычно и меняют.
+      setTimeout(() => { field.focus(); const dot = field.value.lastIndexOf('.'); field.setSelectionRange(0, dot > 0 ? dot : field.value.length); }, 30);
+      const done = (v) => { box.hidden = true; form.onsubmit = null; $('askCancel').onclick = null; altBtn.onclick = null; box.onkeydown = null; resolve(v); };
+      form.onsubmit = (e) => { e.preventDefault(); done(field.value.trim() || null); };
+      $('askCancel').onclick = () => done(null);
+      altBtn.onclick = () => done(ASK_ALT);
+      box.onkeydown = (e) => { if (e.key === 'Escape') { e.preventDefault(); done(null); } };
+    });
+  }
+
+  // Копия в браузере, если сохранить на сервер не вышло (нет связи, сервер не принял файл).
+  const Recovery = (() => {
+    const open = () => new Promise((resolve, reject) => {
+      if (!window.indexedDB) { reject(new Error('нет IndexedDB')); return; }
+      const r = indexedDB.open('aiillustrator', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('recovery');
+      r.onsuccess = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+    });
+    const run = async (mode, fn) => {
+      const db = await open();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('recovery', mode);
+        const req = fn(tx.objectStore('recovery'));
+        tx.oncomplete = () => { db.close(); resolve(req && req.result); };
+        tx.onerror = () => { db.close(); reject(tx.error); };
+      });
+    };
+    return {
+      put: (v) => run('readwrite', (s) => s.put(v, 'last')).catch(() => {}),
+      get: () => run('readonly', (s) => s.get('last')).catch(() => null),
+      clear: () => run('readwrite', (s) => s.delete('last')).catch(() => {}),
+    };
+  })();
+
+  function downloadBytes(name, bytes) {
+    try {
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      return true;
+    } catch (e) { console.warn('AI-Illustrator: скачивание не удалось', e); return false; }
+  }
+
+  const Files = (() => {
+    // Типы файлов на сервере (как в api/files.php) и типы документов, которые приходят при сохранении.
+    const EXT = /\.(vectorcraft|drawcraft|svgz?|pdf|ai|eps)$/i;
+    let list = [];
+    let last = null;                 // файл на сервере, открытый или сохранённый последним
+    const mine = new Set();          // файлы сервера, открытые или сохранённые в этой вкладке
+    const alias = new Map();         // имя в редакторе → имя на сервере, если сохранили под другим
+    let saveAsNext = false;          // «Сохранить как» из окна «Мои файлы»
+    let downloadNext = false;        // «На компьютер»: следующее сохранение — скачать
+    let flagTimer = 0;
+    let queue = Promise.resolve();   // сохранения по одному: окно с именем одно
+    const api = (q) => CFG.files + (q ? '?' + q : '');
+    const extOf = (n) => { const m = String(n || '').match(EXT); return m ? m[0].toLowerCase() : '.vectorcraft'; };
+    const stem = (n) => String(n || '').replace(EXT, '').trim();
+    // Имя на сервере всегда с расширением того, что сохраняется: содержимое от имени не меняется.
+    const withExt = (name, like) => (stem(name) || stem(like) || 'Без названия') + extOf(like);
+    async function json(r) {
+      let j = null;
+      try { j = await r.json(); } catch { /* ниже */ }
+      if (!j) throw new Error(r.status === 413 ? 'Файл слишком большой для сервера: увеличьте client_max_body_size в nginx и post_max_size в PHP.' : `Сервер ответил ${r.status}: проверьте, что PHP обрабатывает api/files.php.`);
+      if (!j.ok) { const e = new Error(j.error || 'Ошибка сервера'); e.exists = !!j.exists; e.login = !!j.login; throw e; }
+      return j;
+    }
+    async function refresh() {
+      const j = await json(await fetch(api(''), { credentials: 'same-origin', cache: 'no-store' }));
+      list = Array.isArray(j.files) ? j.files : [];
+      $('filesWho').textContent = j.user && j.user !== 'local' ? 'на сервере · пользователь ' + j.user : 'на сервере';
+      return list;
+    }
+    function render() {
+      const q = norm($('filesSearch').value).trim();
+      const rows = list.filter((f) => !q || norm(f.name).includes(q));
+      const box = $('filesList');
+      if (!list.length) { box.innerHTML = '<p class="st-files-empty">Здесь будут ваши рисунки. Сохраните открытый документ кнопкой «Сохранить» или Ctrl+S — он появится в этом списке.</p>'; return; }
+      if (!rows.length) { box.innerHTML = '<p class="st-files-empty">Ничего не найдено.</p>'; return; }
+      box.innerHTML = rows.map((f, i) => `<div class="st-file" data-i="${i}" tabindex="0">
+          <span class="st-file-icon">${ICON.file}</span>
+          <span class="st-file-name">${esc(f.name)}</span>
+          <span class="st-file-meta">${esc(fmtDate(f.modified))} · ${esc(fmtSize(f.size))}</span>
+          <span class="st-file-acts"><button class="st-link" data-a="rename">Переименовать</button><button class="st-link danger" data-a="delete">Удалить</button></span>
+        </div>`).join('');
+      box.querySelectorAll('.st-file').forEach((row) => {
+        const f = rows[+row.dataset.i];
+        row.onclick = (e) => { if (!e.target.closest('button')) load(f.name); };
+        row.onkeydown = (e) => { if (e.key === 'Enter' && e.target === row) load(f.name); };
+        row.querySelector('[data-a="rename"]').onclick = () => rename(f.name);
+        row.querySelector('[data-a="delete"]').onclick = () => remove(f.name);
+      });
+    }
+    function updateFoot() {
+      $('filesCurrent').textContent = last ? `Последний: «${last}»` : 'Сохраните документ (Ctrl+S) — он появится здесь.';
+    }
+    async function show(on = true) {
+      $('files').hidden = !on;
+      if (!on) return;
+      $('filesList').innerHTML = '<p class="st-files-empty">Загружаю список…</p>';
+      updateFoot();
+      try { await refresh(); render(); } catch (e) { $('filesList').innerHTML = `<p class="st-files-empty err">${esc(e.message)}</p>`; }
+      setTimeout(() => $('filesSearch').focus(), 30);
+    }
+    async function load(name) {
+      try {
+        toast('Открываю «' + name + '»…');
+        const r = await fetch(api('action=load&name=' + encodeURIComponent(name)), { credentials: 'same-origin', cache: 'no-store' });
+        if (!r.ok) await json(r);
+        const bytes = new Uint8Array(await r.arrayBuffer());
+        if (!openInEditor(name, bytes)) throw new Error('редактор не принял файл');
+        mine.add(name);
+        last = name;
+        show(false);
+      } catch (e) { toast('Не удалось открыть: ' + e.message, true); }
+    }
+    async function upload(name, bytes, overwrite) {
+      const r = await fetch(api('action=save&name=' + encodeURIComponent(name) + (overwrite ? '&overwrite=1' : '')), {
+        method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/octet-stream' }, body: bytes,
+      });
+      return json(r);
+    }
+    // Флаги кнопок окна действуют на одно сохранение и недолго: если оно не случилось, они гаснут.
+    function arm(which) {
+      if (which === 'saveAs') saveAsNext = true; else downloadNext = true;
+      clearTimeout(flagTimer);
+      flagTimer = setTimeout(() => { saveAsNext = false; downloadNext = false; }, 120000);
+    }
+    // Сохранение из редактора: документ приходит сюда.
+    async function onSave(d) {
+      const bytes = d.bytes;
+      if (!(bytes instanceof Uint8Array) || !bytes.length) return;
+      const appName = String(d.name || 'Без названия' + '.vectorcraft');
+      if (downloadNext) {
+        downloadNext = false;
+        if (downloadBytes(appName, bytes)) toast('Файл «' + appName + '» скачан на компьютер.');
+        return;
+      }
+      const asked = saveAsNext || !!d.saveAs;
+      saveAsNext = false;
+      const known = alias.get(appName) || appName;
+      let name = !asked && mine.has(known) ? known : null;
+      let overwrite = !!name;
+      try {
+        if (!name) {
+          const choice = await askName(asked ? 'Сохранить как' : 'Сохранить на сервере', known, 'Файл появится в «Моих файлах».', 'На компьютер');
+          if (choice === ASK_ALT) {
+            if (downloadBytes(appName, bytes)) toast('Файл «' + appName + '» скачан на компьютер.');
+            return;
+          }
+          if (!choice) { notSaved(appName, bytes); return; }
+          name = withExt(choice, appName);
+          if (!list.length) await refresh().catch(() => {});
+          if (list.some((f) => f.name === name) && !mine.has(name) && !window.confirm(`Файл «${name}» уже есть в «Моих файлах». Заменить его?`)) { notSaved(appName, bytes); return; }
+          overwrite = true;
+        }
+        const r = await upload(name, bytes, overwrite);
+        mine.add(r.name);
+        last = r.name;
+        if (r.name !== appName) alias.set(appName, r.name); else alias.delete(appName);
+        confirmSaved(d);
+        Recovery.clear();
+        toast('Сохранено в «Моих файлах»: «' + r.name + '»');
+        if (!$('files').hidden) { await refresh().catch(() => {}); render(); updateFoot(); }
+      } catch (e) {
+        // Документ не должен пропасть: если сервер не принял его, файл сразу скачивается на компьютер.
+        Recovery.put({ name: name || appName, data: bytes, time: Date.now() });
+        downloadBytes(name || appName, bytes);
+        if (e.login) toast('Войдите в систему, чтобы сохранять файлы на сервере. Файл скачан на компьютер.', true);
+        else toast('Не удалось сохранить на сервере: ' + e.message + '. Файл скачан на компьютер.', true);
+      }
+    }
+    // Копия открытого документа на компьютер, без сохранения на сервере.
+    async function downloadCopy() {
+      if (!PC.ready()) return;
+      arm('download');
+      try { await saveCommand(false); } catch (e) { downloadNext = false; toast('Не удалось скачать: ' + e.message, true); }
+    }
+    async function save(saveAs) {
+      if (!PC.ready()) return;
+      if (saveAs) arm('saveAs');
+      show(false);
+      try { await saveCommand(saveAs); } catch (e) { saveAsNext = false; toast('Не удалось сохранить: ' + e.message, true); }
+    }
+    async function rename(name) {
+      const to0 = await askName('Переименовать', name);
+      if (!to0 || to0 === name) return;
+      const to = withExt(to0, name);
+      if (to === name) return;
+      try {
+        const r = await json(await fetch(api('action=rename'), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, to }) }));
+        const now = r.name || to;
+        // Документ, открытый из этого файла, дальше сохраняется под новым именем.
+        for (const [k, v] of alias) if (v === name) alias.set(k, now);
+        if (mine.delete(name)) { mine.add(now); if (!alias.has(name)) alias.set(name, now); }
+        if (last === name) last = now;
+        await refresh(); render(); updateFoot();
+      } catch (e) { toast('Не удалось переименовать: ' + e.message, true); }
+    }
+    async function remove(name) {
+      if (!window.confirm(`Удалить «${name}»? Файл уйдёт в корзину на сервере.`)) return;
+      try {
+        await json(await fetch(api('action=delete'), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) }));
+        mine.delete(name);
+        for (const [k, v] of alias) if (v === name) alias.delete(k);
+        if (last === name) last = null;
+        await refresh(); render(); updateFoot();
+      } catch (e) { toast('Не удалось удалить: ' + e.message, true); }
+    }
+    function pickLocal() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.vectorcraft,.drawcraft,.svg,.svgz,.pdf,.ai,.eps,.png,.jpg,.jpeg';
+      input.onchange = async () => {
+        const f = input.files && input.files[0];
+        if (!f) return;
+        try {
+          if (!openInEditor(f.name, new Uint8Array(await f.arrayBuffer()))) throw new Error('редактор не принял файл');
+          show(false);
+          toast('Открыт «' + f.name + '». Сохраните его (Ctrl+S), чтобы он появился в «Моих файлах».');
+        } catch (e) { toast('Не удалось открыть ' + f.name + ': ' + e.message, true); }
+      };
+      input.click();
+    }
+    async function offerRecovery() {
+      const r = await Recovery.get();
+      if (!r || !r.data) return;
+      const when = new Date(r.time).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      const d = msg('note', `Файл «${esc(r.name)}» от ${esc(when)} не удалось сохранить на сервер — его копия осталась в браузере (и была скачана на компьютер). ` +
+        '<span class="st-row"><button class="st-mini" data-a="open">Открыть копию</button><button class="st-mini" data-a="down">На компьютер</button><button class="st-mini danger" data-a="drop">Удалить копию</button></span>');
+      d.querySelector('[data-a="open"]').onclick = () => {
+        try {
+          if (!openInEditor(r.name, r.data)) throw new Error('редактор не принял файл');
+          d.remove();
+          toast('Копия открыта. Сохраните её (Ctrl+S).');
+        } catch (e) { toast('Не удалось открыть копию: ' + e.message, true); }
+      };
+      d.querySelector('[data-a="down"]').onclick = () => { downloadBytes(r.name, r.data); };
+      d.querySelector('[data-a="drop"]').onclick = () => { Recovery.clear(); d.remove(); };
+      setOpen(true);
+    }
+    function start() {
+      if (!CFG.files) { $('filesBtn').hidden = true; return; }
+      // Редактор отдаёт документы сюда, а не скачивает их.
+      try { VC_SAVES().takesSaves = true; } catch { /* мост ещё не готов: сохранения скачиваются */ }
+      window.addEventListener('vectorcraft:save', (e) => {
+        const d = (e && e.detail) || {};
+        queue = queue.then(() => onSave(d)).catch((err) => console.warn('AI-Illustrator: сохранение', err));
+      });
+      $('filesBtn').onclick = () => show(true);
+      $('filesClose').onclick = () => show(false);
+      $('files').addEventListener('pointerdown', (e) => { if (e.target === $('files')) show(false); });
+      $('files').addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('ask').hidden) { e.preventDefault(); show(false); } });
+      $('filesSearch').addEventListener('input', render);
+      $('filesNew').onclick = async () => { show(false); try { await newDocument(); } catch (e) { toast(e.message, true); } };
+      $('filesUpload').onclick = pickLocal;
+      $('filesSave').onclick = () => save(false);
+      $('filesSaveAs').onclick = () => save(true);
+      $('filesDownload').onclick = downloadCopy;
+      // Браузер не должен предлагать «Сохранить страницу как…»: Ctrl+S получает редактор.
+      window.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 's' || e.key === 'S' || e.code === 'KeyS')) e.preventDefault(); }, true);
+      offerRecovery();
+      if (CFG.filesOnStart) refresh().then((l) => { if (l.length) show(true); }).catch(() => {});
+    }
+    return { start, show, save };
+  })();
 
   // ------------------------------------------------------------------ тема и запуск
   const panelThemeOf = (themeId) => (themeId === 'brand' ? 'brand' : (isDarkTheme(themeId) ? 'dark' : 'light'));
@@ -894,6 +1416,8 @@
       const r = await fetch(CFG.api, { credentials: 'same-origin' });
       const j = await r.json();
       if (j.ok) {
+        if (Number(j.ctx) > 0) CTX = Number(j.ctx);
+        if (j.source) $('sub').title = 'Откуда взята модель: ' + j.source;
         $('sub').textContent = 'Модель: ' + j.model;
         fetch('studio/version.json', { cache: 'no-store' }).then((v) => (v.ok ? v.json() : null)).then((v) => {
           if (!v || !v.build) return;
@@ -924,6 +1448,7 @@
     document.body.appendChild(root);
     root.querySelectorAll('.st-seg button').forEach((b) => { b.onclick = () => setMode(b.dataset.mode); });
     $('eye').onclick = () => setEye(!attachScreen);
+    initAgentMenu();
     $('hide').onclick = () => setOpen(false);
     $('fab').onclick = () => { setOpen(true); setBadge(false); };
     $('send').onclick = () => send();
@@ -975,6 +1500,7 @@
     }
     else await setTheme(saved);
     if (store.get('open', CFG.openOnStart)) setOpen(true);
+    Files.start();
     commands().catch(() => {});
     watchTheme();
   }

@@ -1,4 +1,4 @@
-/* AI-Corel — самопроверка загрузки.
+/* AI-Illustrator — самопроверка загрузки.
  *
  * Пока приложение скачивается, страница показывает, сколько уже получено. Если запуск не удался,
  * здесь же видно, какой файл не пришёл и почему (а не только «Загрузка идёт дольше обычного»).
@@ -51,11 +51,11 @@
   function problem(text) {
     if (problems.indexOf(text) < 0 && problems.length < 6) {
       problems.push(text);
-      if (window.console && console.warn) console.warn('AI-Corel:', text);
+      if (window.console && console.warn) console.warn('AI-Illustrator:', text);
       render();
     }
   }
-  window.__aiCorelProblem = problem;
+  window.__aiIllustratorProblem = problem;
   document.addEventListener('DOMContentLoaded', function () {
     var box = loading();
     if (box && window.MutationObserver) new MutationObserver(function () { if (got || problems.length) render(); }).observe(box, { childList: true });
@@ -143,7 +143,7 @@
     var wasm = document.querySelector('link[rel="preload"][href$=".wasm"]');
     if (wasm && wasm.href) checks.push(check(wasm.href, false));
     checks.push(check('app/parts.txt', false));
-    checks.push(check('app/ai-corel.js', true));
+    checks.push(check('app/ai-illustrator.js', true));
     Promise.all(checks).then(function () {
       if (loading() && !problems.length && got === 0) {
         problem('Файлы на сервере в порядке, но запуск не начался. Попробуйте обновить страницу с очисткой кэша (Ctrl+Shift+R) или другой браузер — нужен Chrome, Edge, Firefox или Safari свежей версии.');

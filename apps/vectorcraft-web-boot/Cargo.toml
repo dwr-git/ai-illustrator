@@ -1,6 +1,6 @@
 [package]
 name = "vectorcraft-web-boot"
-description = "Starts AI-Corel in the browser from compressed parts of its WebAssembly"
+description = "Starts AI-Illustrator in the browser from compressed parts of its WebAssembly"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -10,8 +10,8 @@ publish = false
 workspace = true
 
 [[bin]]
-# The shipped file names (ai-corel-<hash>.js / _bg.wasm) come from this name.
-name = "ai-corel"
+# The shipped file names (ai-illustrator-<hash>.js / _bg.wasm) come from this name.
+name = "ai-illustrator"
 path = "src/main.rs"
 
 [dependencies]

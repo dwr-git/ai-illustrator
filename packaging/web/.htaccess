@@ -12,7 +12,7 @@ AddType text/javascript .js
     Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
   # Names that stay the same between releases are checked on every visit.
-  <FilesMatch "^(index\.html|ai-corel\.js|parts\.txt)$">
+  <FilesMatch "^(index\.html|ai-illustrator\.js|parts\.txt)$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
 </IfModule>

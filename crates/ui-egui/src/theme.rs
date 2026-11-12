@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Brightness {
-    /// AI-Corel opens dark, with the Brand scheme (glass panels over the brand gradient).
+    /// AI-Illustrator opens dark, with the Brand scheme (glass panels over the brand gradient).
     #[default]
     Dark,
     MediumDark,
@@ -86,7 +86,7 @@ impl Accent {
     }
 }
 
-/// User Interface › Color Scheme: Neumorphic (AI-Corel's default: one soft, cool surface that
+/// User Interface › Color Scheme: Neumorphic (AI-Illustrator's default: one soft, cool surface that
 /// panels and controls are raised from or pressed into), Brand (glass panels over the brand
 /// gradient, solid black floating windows), Modern (slate greys and the chosen accent) or Classic
 /// (the neutral greys and blue accent of earlier versions).
@@ -555,7 +555,7 @@ impl Tokens {
     }
 
     /// The theme's id for the web page (`window.vectorcraft.currentTheme()`): `neuLight`,
-    /// `neuDark` and `brand` for AI-Corel's own looks, else `modern-dark`, `classic-light`, ….
+    /// `neuDark` and `brand` for AI-Illustrator's own looks, else `modern-dark`, `classic-light`, ….
     pub fn theme_id(&self) -> &'static str {
         match (self.brand, self.neu, self.dark) {
             (true, _, _) => "brand",
@@ -676,7 +676,7 @@ pub fn neu_pressed(painter: &egui::Painter, rect: egui::Rect, radius: f32, t: &T
 /// Where the Brand backdrop is laid out when the window is not the whole page: the page's
 /// viewport in the app's screen points. The web shell sets it, so the backdrop lines up with the
 /// same CSS gradient around the canvas.
-pub const BACKDROP_FRAME: &str = "ai-corel-backdrop-frame";
+pub const BACKDROP_FRAME: &str = "ai-illustrator-backdrop-frame";
 
 /// The Brand backdrop, behind every panel: on a 135° linear gradient #0a0a0f → #1a1a2e → #16213e,
 /// three soft radial spots (40%/40% cyan, 80%/20% pink, 20%/80% violet, each fading to nothing at

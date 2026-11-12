@@ -15,9 +15,16 @@
 //! vectorcraft.setBackdropFrame(left, top, cw, ch, vw, vh)      // Brand: line the backdrop up with the page
 //! vectorcraft.captureDownloads(true)                           // saves stay in the page…
 //! vectorcraft.files(); await vectorcraft.readFile("logo.png")  // …to be read back
+//! vectorcraft.takesSaves = true                                // documents go to the page's server files
 //! ```
 //!
 //! Results resolve with the method's `result`; errors reject with an `Error`.
+//!
+//! While the page has set `takesSaves = true` («Мои файлы», `studio/web/studio.js`), a save or
+//! export of a document format (`saved_files::is_document`: the native format, SVG, PDF, AI, EPS)
+//! reaches it as a `vectorcraft:save` event on `window` (`detail: {name, path, bytes}`) instead
+//! of downloading. The page keeps it on the server and downloads it if the server refuses it, so
+//! nothing is lost.
 
 use std::cell::{Cell, RefCell};
 use std::sync::mpsc::{Receiver, Sender, TryRecvError};
@@ -57,6 +64,46 @@ fn repaint() {
             ctx.request_repaint();
         }
     });
+}
+
+/// Hand a save of a document to the page when it takes saves (`takesSaves`) → whether it did; the
+/// caller downloads it otherwise.
+pub fn hand_save(path: &str, bytes: &[u8]) -> bool {
+    if !crate::saved_files::is_document(path) || !takes_saves() {
+        return false;
+    }
+    match dispatch_save(path, bytes) {
+        Ok(()) => true,
+        Err(e) => {
+            // The page never got it: download it as before, so nothing is lost.
+            log::warn!("vectorcraft-web: could not hand the save of {path} to the page: {e}");
+            false
+        }
+    }
+}
+
+/// Whether the page said it keeps saves (`window.vectorcraft.takesSaves = true`).
+fn takes_saves() -> bool {
+    web_sys::window()
+        .and_then(|w| js_sys::Reflect::get(&w, &"vectorcraft".into()).ok())
+        .filter(JsValue::is_object)
+        .and_then(|o| js_sys::Reflect::get(&o, &"takesSaves".into()).ok())
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false)
+}
+
+fn dispatch_save(path: &str, bytes: &[u8]) -> Result<(), String> {
+    let js = |e: JsValue| format!("{e:?}");
+    let window = web_sys::window().ok_or("no window")?;
+    let detail = js_sys::Object::new();
+    let put = |k: &str, v: &JsValue| js_sys::Reflect::set(&detail, &k.into(), v).map(|_| ()).map_err(js);
+    put("name", &JsValue::from_str(crate::saved_files::file_name(path)))?;
+    put("path", &JsValue::from_str(path))?;
+    put("bytes", &js_sys::Uint8Array::from(bytes).into())?;
+    let init = web_sys::CustomEventInit::new();
+    init.set_detail(&detail);
+    let event = web_sys::CustomEvent::new_with_event_init_dict("vectorcraft:save", &init).map_err(js)?;
+    window.dispatch_event(&event).map(|_| ()).map_err(js)
 }
 
 /// Keep a save instead of downloading it, when the page asked for that. True when kept.
@@ -109,7 +156,7 @@ fn request(method: &str, params: Value) -> js_sys::Promise {
         if sent {
             WAITING.with(|w| w.borrow_mut().push((rx, resolve, reject)));
         } else {
-            let _ = reject.call1(&JsValue::NULL, &js_sys::Error::new("AI-Corel is not running yet"));
+            let _ = reject.call1(&JsValue::NULL, &js_sys::Error::new("AI-Illustrator is not running yet"));
         }
     });
     repaint();
@@ -192,7 +239,7 @@ pub fn install() -> Result<(), JsValue> {
         })
         .into_js_value(),
     )?;
-    // AI-Corel's page (studio/): the theme, keyboard focus and the Brand backdrop's alignment.
+    // AI-Illustrator's page (studio/): the theme, keyboard focus and the Brand backdrop's alignment.
     set_fn(
         &obj,
         "currentTheme",
@@ -237,7 +284,9 @@ pub fn install() -> Result<(), JsValue> {
         })
         .into_js_value(),
     )?;
-    set_fn(&obj, "product", JsValue::from_str("AI-Corel"))?;
+    // The page sets it to true when it keeps documents in the user's files on the server.
+    set_fn(&obj, "takesSaves", JsValue::FALSE)?;
+    set_fn(&obj, "product", JsValue::from_str("AI-Illustrator"))?;
     let w = web_sys::window().ok_or("no window")?;
     js_sys::Reflect::set(&w, &"vectorcraft".into(), &obj)?;
     Ok(())

@@ -285,7 +285,7 @@ mod tests {
                     assert!(!a.shrink(0.5).intersects(b.shrink(0.5)), "{a:?} overlaps {b:?} at {width}");
                 }
             }
-            // AI-Corel links nowhere outside its folder: no Discord button at any width.
+            // AI-Illustrator links nowhere outside its folder: no Discord button at any width.
             let texts: Vec<String> = texts(&out).into_iter().map(|(t, _)| t).collect();
             let has = |s: &str| texts.iter().any(|t| t == s);
             assert!(!has("Discord"), "{width}: {texts:?}");

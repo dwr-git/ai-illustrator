@@ -1,4 +1,4 @@
-//! Starts AI-Corel in the browser from compressed parts of its WebAssembly.
+//! Starts AI-Illustrator in the browser from compressed parts of its WebAssembly.
 //!
 //! Static hosts cap the size of one file (Cloudflare Pages: 25 MiB), and the app's wasm is at
 //! that size. `packaging/web/package.sh` gzips it and cuts it into parts listed in
@@ -23,7 +23,7 @@
 /// First line of `parts.txt`. Some hosts answer a missing file with the home page and HTTP 200;
 /// without this an HTML page would be read as a list of parts.
 #[cfg(any(target_arch = "wasm32", test))]
-const MARKER: &str = "ai-corel-parts 1";
+const MARKER: &str = "ai-illustrator-parts 1";
 
 /// The part names in a `parts.txt`, in order, or `None` when the text isn't one. A name is a
 /// file next to `parts.txt`: anything that could point elsewhere is refused.
@@ -47,7 +47,7 @@ fn plain(p: &str) -> bool {
     !p.is_empty() && !p.starts_with('.') && !p.contains(['/', '\\', '?', '#', ':', '%', ' '])
 }
 
-/// How `parts.txt` names the app's `wasm-bindgen` loader: `loader ai-corel-<hash>.js`.
+/// How `parts.txt` names the app's `wasm-bindgen` loader: `loader ai-illustrator-<hash>.js`.
 #[cfg(any(target_arch = "wasm32", test))]
 const LOADER: &str = "loader ";
 
@@ -69,7 +69,7 @@ fn loader(list: &str) -> String {
         .find_map(|l| l.strip_prefix(LOADER_NOTE).or_else(|| l.strip_prefix(LOADER)))
         .map(str::trim)
         .filter(|f| plain(f) && f.ends_with(".js"))
-        .unwrap_or("ai-corel.js")
+        .unwrap_or("ai-illustrator.js")
         .to_owned()
 }
 
@@ -275,12 +275,12 @@ mod boot {
                     Ok(()) => return,
                     Err(e) => e,
                 };
-                web_sys::console::error_2(&JsValue::from_str("ai-corel-boot: could not start AI-Corel:"), &error);
+                web_sys::console::error_2(&JsValue::from_str("ai-illustrator-boot: could not start AI-Illustrator:"), &error);
                 let Some(&wait) = RETRY_AFTER.get(attempt) else {
-                    say("AI-Corel не скачался с сервера. Проверьте, что папка скопирована целиком, и попробуйте ещё раз: ", true);
+                    say("AI-Illustrator не скачался с сервера. Проверьте, что папка скопирована целиком, и попробуйте ещё раз: ", true);
                     return;
                 };
-                say("Загрузка AI-Corel\u{2026} (скачать не вышло, пробую ещё раз)", false);
+                say("Загрузка AI-Illustrator\u{2026} (скачать не вышло, пробую ещё раз)", false);
                 sleep(wait).await;
                 attempt += 1;
             }
@@ -379,8 +379,8 @@ mod tests {
 
     #[test]
     fn a_parts_list_gives_its_names_in_order() {
-        let list = format!("{MARKER}\nai-corel-0123abcd.part-aa\r\n\n  ai-corel-0123abcd.part-ab  \n");
-        assert_eq!(parts(&list), Some(vec!["ai-corel-0123abcd.part-aa".to_owned(), "ai-corel-0123abcd.part-ab".to_owned()]));
+        let list = format!("{MARKER}\nai-illustrator-0123abcd.part-aa\r\n\n  ai-illustrator-0123abcd.part-ab  \n");
+        assert_eq!(parts(&list), Some(vec!["ai-illustrator-0123abcd.part-aa".to_owned(), "ai-illustrator-0123abcd.part-ab".to_owned()]));
     }
 
     /// A host that answers a missing file with its home page must not have that page read as a
@@ -389,24 +389,24 @@ mod tests {
     fn a_web_page_is_not_a_parts_list() {
         assert_eq!(parts(include_str!("../index.html")), None);
         assert_eq!(parts(""), None);
-        assert_eq!(parts("ai-corel.part-aa\n"), None, "no marker");
+        assert_eq!(parts("ai-illustrator.part-aa\n"), None, "no marker");
         assert_eq!(parts(&format!("{MARKER}\n")), None, "no parts");
-        assert_eq!(parts("ai-corel-parts 2\na.part-aa\n"), None, "a later layout this build doesn't know");
+        assert_eq!(parts("ai-illustrator-parts 2\na.part-aa\n"), None, "a later layout this build doesn't know");
     }
 
     /// Part names are joined onto `./app/`, so one that could leave that folder, or name another
     /// origin, refuses the whole list.
     #[test]
     fn the_parts_list_names_the_loader() {
-        let list = format!("{MARKER}\nloader ai-corel-0123abcd.js\na.part-aa\n# build 5\n");
+        let list = format!("{MARKER}\nloader ai-illustrator-0123abcd.js\na.part-aa\n# build 5\n");
         assert_eq!(parts(&list), Some(vec!["a.part-aa".to_string()]));
-        assert_eq!(loader(&list), "ai-corel-0123abcd.js");
-        assert_eq!(loader(&format!("{MARKER}\na.part-aa\n")), "ai-corel.js", "an older list");
-        assert_eq!(loader(&format!("{MARKER}\nloader ../evil.js\na.part-aa\n")), "ai-corel.js", "only a file next to the list");
-        assert_eq!(loader(&format!("{MARKER}\nloader https://x/y.js\na.part-aa\n")), "ai-corel.js");
+        assert_eq!(loader(&list), "ai-illustrator-0123abcd.js");
+        assert_eq!(loader(&format!("{MARKER}\na.part-aa\n")), "ai-illustrator.js", "an older list");
+        assert_eq!(loader(&format!("{MARKER}\nloader ../evil.js\na.part-aa\n")), "ai-illustrator.js", "only a file next to the list");
+        assert_eq!(loader(&format!("{MARKER}\nloader https://x/y.js\na.part-aa\n")), "ai-illustrator.js");
         // The note form: older boot modules skip `#` lines, so they still find the parts.
-        let noted = format!("{MARKER}\n# loader ai-corel-0123abcd.js\na.part-aa\n");
-        assert_eq!(loader(&noted), "ai-corel-0123abcd.js");
+        let noted = format!("{MARKER}\n# loader ai-illustrator-0123abcd.js\na.part-aa\n");
+        assert_eq!(loader(&noted), "ai-illustrator-0123abcd.js");
         assert_eq!(parts(&noted), Some(vec!["a.part-aa".to_string()]));
     }
 
@@ -431,7 +431,7 @@ mod tests {
         let trunk = |html: &str| html.lines().filter(|l| !l.contains("data-trunk")).collect::<Vec<_>>().join("\n");
         let (boot, app) = (include_str!("../index.html"), include_str!("../../vectorcraft-web/index.html"));
         assert_eq!(trunk(boot), trunk(app));
-        assert!(boot.contains(r#"data-bin="ai-corel""#), "{boot}");
+        assert!(boot.contains(r#"data-bin="ai-illustrator""#), "{boot}");
         assert!(boot.contains(r#"id="vectorcraft_loading""#), "the element the failure message replaces");
     }
 }

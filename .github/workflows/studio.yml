@@ -1,9 +1,9 @@
-# Сборка AI-Corel: готовая папка для сервера (zip).
+# Сборка AI-Illustrator: готовая папка для сервера (zip).
 #
 # Запускается на каждое изменение ветки main и вручную (Actions → «Сборка» → Run workflow).
 # Результат:
 #   - Releases → «Сборка N — дата» (отдельный выпуск на каждую сборку, свежая отмечена Latest):
-#     ai-corel-build-N-ГГГГ-ММ-ДД.zip; что нового — из studio/CHANGES.ru.md
+#     ai-illustrator-build-N-ГГГГ-ММ-ДД.zip; что нового — из studio/CHANGES.ru.md
 #   - Actions → запуск → Artifacts: тот же zip
 # Rust, trunk и всё остальное ставятся только здесь, на машине GitHub. На ваш сервер
 # попадают готовые файлы: index.html, js, сжатый wasm, PHP помощника.
@@ -23,12 +23,12 @@ concurrency:
 
 jobs:
   build:
-    name: AI-Corel (браузер)
+    name: AI-Illustrator (браузер)
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
       TRUNK_VERSION: 0.21.14
-      AI_COREL_BUILD: ${{ github.run_number }}
+      AI_ILLUSTRATOR_BUILD: ${{ github.run_number }}
       # Шрифты для текста в документах (открытые, OFL): та же версия, что у исходного проекта.
       # Попадают в папку fonts/ рядом с приложением — грузятся с вашего сервера, не из интернета.
       CRAFT_FONTS_REF: a71c20e30af613287c504f7e685ca8fad77752bc
@@ -74,8 +74,8 @@ jobs:
       - name: Сохранить zip в Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ai-corel
-          path: dist/release/ai-corel-build-*.zip
+          name: ai-illustrator
+          path: dist/release/ai-illustrator-build-*.zip
           retention-days: 30
           if-no-files-found: error
 
@@ -83,20 +83,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          ZIP=$(ls dist/release/ai-corel-build-*.zip)
+          ZIP=$(ls dist/release/ai-illustrator-build-*.zip)
           DATE=$(TZ=Europe/Minsk date +%d.%m.%Y)
           # Что нового: верхний раздел studio/CHANGES.ru.md (от первого «## » до следующего).
           awk '/^## /{n++} n==1' studio/CHANGES.ru.md > notes.md
           {
             echo
             echo "---"
-            echo "Скачайте zip ниже, распакуйте и положите папку ai-corel на сервер вместо старой (имя папки можно менять)."
+            echo "Скачайте zip ниже, распакуйте и положите папку ai-illustrator на сервер вместо старой (имя папки можно менять)."
             echo "Номер установленной сборки виден в шапке панели помощника. Инструкция: studio/README.ru.md"
           } >> notes.md
           # Повторный запуск той же сборки заменяет её выпуск.
-          gh release delete "build-${AI_COREL_BUILD}" --cleanup-tag --yes 2>/dev/null || true
-          gh release create "build-${AI_COREL_BUILD}" "$ZIP" \
+          gh release delete "build-${AI_ILLUSTRATOR_BUILD}" --cleanup-tag --yes 2>/dev/null || true
+          gh release create "build-${AI_ILLUSTRATOR_BUILD}" "$ZIP" \
             --target "$GITHUB_SHA" \
             --latest \
-            --title "Сборка ${AI_COREL_BUILD} — ${DATE}" \
+            --title "Сборка ${AI_ILLUSTRATOR_BUILD} — ${DATE}" \
             --notes-file notes.md

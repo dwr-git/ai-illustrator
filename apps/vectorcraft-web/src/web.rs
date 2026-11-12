@@ -149,7 +149,7 @@ async fn run(host: Host, canvas: web_sys::HtmlCanvasElement, moving: Option<Movi
             }
         }
         (Err(e), None) => notice(&[
-            &format!("AI-Corel не запустился: {}", js_err(e)),
+            &format!("AI-Illustrator не запустился: {}", js_err(e)),
             "Нужен браузер с WebGPU или WebGL2 (свежий Chrome, Edge, Firefox или Safari).",
         ]),
         (Err(e), Some(kept)) => {
@@ -572,9 +572,14 @@ impl RecoveryStore for BrowserStore {
     }
 }
 
-/// Trigger a browser download of `bytes` named after the last component of `path`.
+/// Trigger a browser download of `bytes` named after the last component of `path` (unless the
+/// page keeps it: `captureDownloads`, or a document while the page takes saves).
 fn download(path: &str, bytes: &[u8]) -> Result<(), String> {
     if crate::api::capture(path, bytes) {
+        return Ok(());
+    }
+    // Documents go to the page while it keeps the user's files on the server (`crate::api`).
+    if crate::api::hand_save(path, bytes) {
         return Ok(());
     }
     let js = |e: wasm_bindgen::JsValue| format!("{e:?}");

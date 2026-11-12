@@ -1,10 +1,24 @@
-//! What the page keeps of the app's saves (`api.rs`): `readFile` reads them back.
+//! What the page keeps of the app's saves (`api.rs`): `readFile` reads them back, and which
+//! saves go to the user's files on the server («Мои файлы», `studio/web/studio.js`).
 
 /// Saved files kept (the oldest go first).
 pub const MAX_SAVED: usize = 16;
 
+/// Extensions of the documents the page keeps on the server while it takes saves: the native
+/// format and the vector formats it opens again (`.svg`, `.pdf`, `.ai`, `.eps`). Pictures and
+/// everything else keep downloading.
+pub const DOCUMENT_EXTS: &[&str] = &["vectorcraft", "drawcraft", "svg", "svgz", "pdf", "ai", "eps"];
+
+/// Whether a save to `path` is a document the page keeps on the server.
+pub fn is_document(path: &str) -> bool {
+    match file_name(path).rsplit_once('.') {
+        Some((stem, ext)) if !stem.is_empty() => DOCUMENT_EXTS.iter().any(|e| ext.eq_ignore_ascii_case(e)),
+        _ => false,
+    }
+}
+
 /// The last component of a `/` or `\` path.
-fn file_name(path: &str) -> &str {
+pub fn file_name(path: &str) -> &str {
     path.rsplit(['/', '\\']).next().filter(|n| !n.is_empty()).unwrap_or(path)
 }
 
@@ -59,6 +73,16 @@ mod tests {
         assert_eq!(s.list().count(), MAX_SAVED);
         assert_eq!(s.get("f0.png"), None);
         assert!(s.get(&format!("f{}.png", MAX_SAVED + 2)).is_some());
+    }
+
+    #[test]
+    fn documents_go_to_the_server_and_pictures_download() {
+        for p in ["Логотип.vectorcraft", "old.DRAWCRAFT", "a/b/icon.svg", "icon.svgz", r"C:\x\print.pdf", "art.ai", "logo.eps"] {
+            assert!(is_document(p), "{p}");
+        }
+        for p in ["poster.png", "poster.jpg", "notes.txt", ".svg", "svg", "", "dir/"] {
+            assert!(!is_document(p), "{p}");
+        }
     }
 
     #[test]
